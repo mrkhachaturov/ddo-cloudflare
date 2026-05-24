@@ -1,0 +1,7 @@
+.git
+.gitignore
+*.md
+out
+webhook
+*.test
+.DS_Store
