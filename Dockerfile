@@ -2,7 +2,7 @@
 #
 # Pure-Go build. CGO is disabled so the resulting binary runs on
 # distroless static without any glibc.
-FROM golang:1.22-alpine AS builder
+FROM golang:1.26-alpine AS builder
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
