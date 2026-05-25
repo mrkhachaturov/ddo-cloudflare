@@ -91,9 +91,9 @@ type Orchestrator struct {
 
 	// zonesMu guards the lazy zone cache. Zones change rarely; we resolve
 	// once at first use and re-resolve only on explicit error.
-	zonesMu     sync.Mutex
-	resolvedZ   []cfclient.Zone
-	zoneFilter  []string // configured allow-list (lowercased, dot-stripped)
+	zonesMu      sync.Mutex
+	resolvedZ    []cfclient.Zone
+	zoneFilter   []string // configured allow-list (lowercased, dot-stripped)
 	filteredOnce bool
 }
 
