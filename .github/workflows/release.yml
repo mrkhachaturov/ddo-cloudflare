@@ -38,8 +38,8 @@ jobs:
             !started && $0 ~ "^(##|####) +\\[?"esc"\\]?( |$)" { started = 1; next }
             started && /^(##|####) +\[?[0-9]/ { exit }
             started { print }
-          ' CHANGELOG.md > .release-notes.md
-          if [ ! -s .release-notes.md ]; then
+          ' CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
             echo "::error::No CHANGELOG section found for version $VERSION"
             exit 1
           fi
@@ -47,7 +47,7 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-notes
-          path: .release-notes.md
+          path: release-notes.md
           if-no-files-found: error
           retention-days: 1
 
@@ -226,7 +226,7 @@ jobs:
 
       - uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         with:
-          body_path: .release-notes.md
+          body_path: release-notes.md
           files: sbom.spdx.json
           make_latest: 'true'
           fail_on_unmatched_files: false
