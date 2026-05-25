@@ -8,9 +8,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"net"
+	"net/http"
+	"os"
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	cf "github.com/cloudflare/cloudflare-go/v7"
 	"github.com/cloudflare/cloudflare-go/v7/dns"
@@ -100,7 +105,45 @@ func (c *APIClient) ensureClient() *cf.Client {
 	if c.client != nil {
 		return c.client
 	}
-	c.client = cf.NewClient(option.WithAPIToken(c.apiToken))
+	// cloudflare-go uses http.DefaultClient with no timeout if WithHTTPClient
+	// is not set (README: "Requests do not time out by default"). Idle HTTP/2
+	// connections to api.cloudflare.com get silently dropped by intermediate
+	// NAT/edge after seconds-to-minutes; the Go h2 transport keeps the dead
+	// conn in its pool and the next request blocks on a TLS read that never
+	// returns. We mitigate at two layers:
+	//   1. DisableKeepAlives — fresh TCP for every request. Adds ~100ms TLS
+	//      handshake per call but eliminates pool poisoning entirely. With a
+	//      CRON-tick cadence measured in tens of seconds this overhead is
+	//      irrelevant.
+	//   2. option.WithRequestTimeout — defence in depth: per-retry HTTP-level
+	//      timeout so a stuck request can never hold the orchestrator's
+	//      applyMu forever.
+	httpClient := &http.Client{
+		Timeout: 60 * time.Second,
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   10 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}).DialContext,
+			ForceAttemptHTTP2:     true,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+			ResponseHeaderTimeout: 30 * time.Second,
+			IdleConnTimeout:       20 * time.Second,
+			DisableKeepAlives:     true,
+		},
+	}
+	opts := []option.RequestOption{
+		option.WithAPIToken(c.apiToken),
+		option.WithHTTPClient(httpClient),
+		option.WithRequestTimeout(30 * time.Second),
+		option.WithMaxRetries(2),
+	}
+	if os.Getenv("CLOUDFLARE_DEBUG") == "true" {
+		opts = append(opts, option.WithDebugLog(log.New(os.Stderr, "cf-sdk: ", log.LstdFlags)))
+	}
+	c.client = cf.NewClient(opts...)
 	return c.client
 }
 
