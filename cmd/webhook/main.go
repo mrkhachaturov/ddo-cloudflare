@@ -4,7 +4,9 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -15,6 +17,12 @@ import (
 )
 
 func main() {
+	// Multi-mode binary: `webhook healthcheck` performs a local /healthz probe
+	// and exits 0/1. Lets us wire HEALTHCHECK in distroless without shipping a
+	// second binary or installing a shell.
+	if len(os.Args) > 1 && os.Args[1] == "healthcheck" {
+		os.Exit(runHealthcheck())
+	}
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("config: %v", err)
@@ -56,4 +64,29 @@ func main() {
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("http: %v", err)
 	}
+}
+
+// runHealthcheck probes the local /healthz over HTTP and returns 0 on a 2xx
+// response, 1 on anything else. The listen address is taken from
+// WEBHOOK_LISTEN (same env var the server reads), defaulting to :9090.
+// A bare ":port" form is rewritten to "127.0.0.1:port" since the probe
+// always targets the same container.
+func runHealthcheck() int {
+	addr := os.Getenv("WEBHOOK_LISTEN")
+	if addr == "" {
+		addr = ":9090"
+	}
+	if strings.HasPrefix(addr, ":") {
+		addr = "127.0.0.1" + addr
+	}
+	c := &http.Client{Timeout: 3 * time.Second}
+	resp, err := c.Get("http://" + addr + "/healthz")
+	if err != nil {
+		return 1
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		return 0
+	}
+	return 1
 }

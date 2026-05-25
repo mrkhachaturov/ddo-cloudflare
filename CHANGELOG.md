@@ -8,6 +8,12 @@ ddo-cloudflare is a webhook sidecar for [docker-dns-operator](https://github.com
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-05-25
+
+### Added
+- `healthcheck` subcommand on the webhook binary. Invoked as `/usr/local/bin/webhook healthcheck`, performs a local `GET /healthz` (using `WEBHOOK_LISTEN` for the address) and exits `0` on a 2xx response, `1` otherwise.
+- `HEALTHCHECK` directive in the Dockerfile wired to that subcommand. The image is distroless (no shell), so the binary is its own probe — the canonical distroless Go pattern, avoiding a second artifact to build/sign/SBOM.
+
 ## [0.1.0] — 2026-05-25
 
 First tagged release.
@@ -30,5 +36,6 @@ First tagged release.
 - Distroless image, pure Go, CGO disabled.
 - See [README.md](README.md) for env vars and deployment examples.
 
-[Unreleased]: https://github.com/mrkhachaturov/ddo-cloudflare/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/mrkhachaturov/ddo-cloudflare/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/mrkhachaturov/ddo-cloudflare/releases/tag/v0.1.1
 [0.1.0]: https://github.com/mrkhachaturov/ddo-cloudflare/releases/tag/v0.1.0
