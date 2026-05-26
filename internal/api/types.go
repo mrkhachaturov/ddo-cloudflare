@@ -1,7 +1,7 @@
 // Package api implements the kubernetes-sigs/external-dns webhook provider
 // v1 wire contract:
 //
-//	GET  /         -> {"filters": ["<zone1>", ...]} (DomainFilter)
+//	GET  /         -> {"include": ["<zone1>", ...]} (DomainFilter)
 //	GET  /records  -> []Endpoint
 //	POST /records  -> 204, body = Changes
 //	GET  /healthz  -> 200/503, body = HealthResponse
@@ -51,10 +51,18 @@ type Changes struct {
 	Delete    []*Endpoint `json:"delete,omitempty"`
 }
 
-// Filters is the response body for GET /. external-dns reads `filters`
-// and uses it to constrain which records it tries to write through us.
-type Filters struct {
-	Filters []string `json:"filters"`
+// DomainFilter is the response body for GET /. Mirrors the JSON form of
+// endpoint.DomainFilter in upstream external-dns (domainFilterSerde). The
+// `include` field is what controllers actually read — sending the legacy
+// `filters` key here would parse upstream as "no filter" and the
+// controller would route every record through us regardless of zone.
+//
+// We only populate Include today (the sidecar's configured zone list).
+// Exclude / RegexInclude / RegexExclude exist in the contract but aren't
+// useful for this sidecar yet; omit them rather than serialise empty
+// strings that upstream would treat as "this filter is set".
+type DomainFilter struct {
+	Include []string `json:"include,omitempty"`
 }
 
 // HealthResponse is the body of GET /healthz. Reports backend reachability

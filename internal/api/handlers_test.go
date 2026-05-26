@@ -53,12 +53,20 @@ func TestNegotiate_ReturnsFiltersFromProvider(t *testing.T) {
 	if ct := rr.Header().Get("Content-Type"); ct != MediaTypeFormatAndVersion {
 		t.Fatalf("content-type: %q", ct)
 	}
-	var got Filters
+	// Decode against upstream's wire field (`include`) to catch regressions
+	// where a future edit renames the Go field but forgets the json tag.
+	var got struct {
+		Include []string `json:"include"`
+		Filters []string `json:"filters"`
+	}
 	if err := json.NewDecoder(rr.Body).Decode(&got); err != nil {
 		t.Fatalf("decode: %v", err)
 	}
-	if len(got.Filters) != 2 || got.Filters[0] != "example.com" {
-		t.Fatalf("filters: %+v", got)
+	if got.Filters != nil {
+		t.Fatalf("legacy `filters` key resurfaced: upstream treats this as 'no filter', breaking domain-scoped routing")
+	}
+	if len(got.Include) != 2 || got.Include[0] != "example.com" {
+		t.Fatalf("include: %+v", got)
 	}
 }
 

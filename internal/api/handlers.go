@@ -34,15 +34,19 @@ func NewHandlers(p Provider, h Healther) *Handlers {
 	return &Handlers{provider: p, healther: h}
 }
 
-// Negotiate handles GET / — external-dns calls this first to discover the
-// domain filter we accept records for. The body is `{"filters":["zone1"]}`.
+// Negotiate handles GET / — external-dns (and our docker-dns-operator)
+// calls this first to discover the domain filter we accept records for.
+// Body shape is `{"include":["zone1", ...]}` matching upstream's
+// endpoint.DomainFilter JSON serialisation. The legacy `filters` key
+// upstream silently treats as "no filter" — i.e. every record gets
+// routed through us, which is the wrong default.
 func (h *Handlers) Negotiate(w http.ResponseWriter, r *http.Request) {
 	zones, err := h.provider.Zones(r.Context())
 	if err != nil {
 		writeWebhookJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return
 	}
-	writeWebhookJSON(w, http.StatusOK, Filters{Filters: zones})
+	writeWebhookJSON(w, http.StatusOK, DomainFilter{Include: zones})
 }
 
 // Records handles GET /records — returns every Endpoint the sidecar manages,
