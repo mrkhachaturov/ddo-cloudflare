@@ -1,5 +1,5 @@
-github.com/cloudflare/cloudflare-go/v7 v7.3.0 h1:QXoCzkccMWdqS6Eqa4a2EFQtuNLHG4g37WladuGeS7Y=
-github.com/cloudflare/cloudflare-go/v7 v7.3.0/go.mod h1:9zcoIAtu6cmcoPszCNISvqYMXs8wObtVGXE1qGFMrNU=
+github.com/cloudflare/cloudflare-go/v7 v7.4.0 h1:JdTxzeXcAhtJ9rUkNISK4ABA55pZP8HLxx6XsPSA7dU=
+github.com/cloudflare/cloudflare-go/v7 v7.4.0/go.mod h1:9zcoIAtu6cmcoPszCNISvqYMXs8wObtVGXE1qGFMrNU=
 github.com/tidwall/gjson v1.14.2/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
 github.com/tidwall/gjson v1.14.4 h1:uo0p8EbA09J7RQaflQ1aBRffTR7xedD2bcIVSYxLnkM=
 github.com/tidwall/gjson v1.14.4/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
