@@ -8,6 +8,14 @@ ddo-cloudflare is a webhook sidecar for [docker-dns-operator](https://github.com
 
 ## [Unreleased]
 
+## [0.1.2] — 2026-06-07
+
+### Fixed
+- `GET /` now emits the domain filter as `include` (per external-dns `endpoint.DomainFilter`) instead of the legacy `filters` key, which upstream parses as an unset filter — previously every record was routed through the sidecar regardless of zone. (Same fix shipped in ddo-mikrotik / ddo-rfc2136 0.2.0.)
+
+### Notes
+- Wildcard DNS names (`*.example.com`) work as-is — Cloudflare supports wildcard records natively and the sidecar passes the name straight through, so no code change was needed (verified end-to-end against the live Cloudflare API). This brings cf to parity with the wildcard support added to the other sidecars in 0.2.0.
+
 ## [0.1.1] — 2026-05-25
 
 ### Added
@@ -36,6 +44,7 @@ First tagged release.
 - Distroless image, pure Go, CGO disabled.
 - See [README.md](README.md) for env vars and deployment examples.
 
-[Unreleased]: https://github.com/mrkhachaturov/ddo-cloudflare/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/mrkhachaturov/ddo-cloudflare/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/mrkhachaturov/ddo-cloudflare/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/mrkhachaturov/ddo-cloudflare/releases/tag/v0.1.1
 [0.1.0]: https://github.com/mrkhachaturov/ddo-cloudflare/releases/tag/v0.1.0
