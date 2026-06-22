@@ -2,7 +2,7 @@ module github.com/mrkhachaturov/ddo-cloudflare
 
 go 1.22
 
-require github.com/cloudflare/cloudflare-go/v7 v7.3.0
+require github.com/cloudflare/cloudflare-go/v7 v7.6.0
 
 require (
 	github.com/tidwall/gjson v1.14.4 // indirect
